@@ -38,7 +38,14 @@ import()
     # Extract the message from each commit in the range and store it
     # in the Maildir for notmuch to consume.
     $git rev-list $3 | while read sha; do
-	$git show $sha:m >$db/$1/new/$sha
+	if [ "$3" = "init" ]; then
+	    # initial import should not mark anything as new, therefore add to "cur"
+	    # so neomutt does not need to re-write everything (N->O)
+	    # after closing the mailbox for the first time
+	    $git show $sha:m >$db/$1/cur/$sha:2
+	elif [ "$3" = "new" ]; then
+	    $git show $sha:m >$db/$1/new/$sha
+	fi
     done
 }
 
@@ -54,7 +61,7 @@ sync()
 
 	echo "  epoch$epoch: syncing" >&2
 	$git fetch --quiet
-	import $1 $gitdir/$epoch $head..master
+	import $1 $gitdir/$epoch $head..master new
 
 	# Basically we now want to `git fetch --depth=1`, but that
 	# would race against new messages that came in during the
@@ -97,7 +104,7 @@ initialize()
 	#    fi
 	#fi
 
-	import $1 $gitdir/$epoch master
+	import $1 $gitdir/$epoch master init
     done
 
     if [ $epoch -lt 0 ]; then
