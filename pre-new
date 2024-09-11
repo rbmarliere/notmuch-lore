@@ -78,25 +78,24 @@ initialize()
     echo "$1: initialize ($url)" >&2
 
     # Try to fetch newer epochs until there are no more.
-    while git clone --quiet --depth 1 --mirror \
-	      $url/$(($epoch + 1)) $gitdir/$(($epoch + 1)) 2>/dev/null; do
+    while git clone --mirror $url/$(($epoch + 1)) $gitdir/$(($epoch + 1)) 2>/dev/null; do
 	epoch=$(($epoch + 1))
 
 	echo "  epoch$epoch: initial import" >&2
-	if ! git --git-dir=$gitdir/$epoch fetch --quiet \
-	     --shallow-since="$since" 2>/dev/null; then
-	    if [ $epoch -eq 0 ]; then
-		# retry without separate git fetch, e.g. linuxppc-dev
-		rm -rf "${gitdir:?}/$epoch"
-		if ! git clone --mirror --shallow-since="$since" "$url/0" "$gitdir/0"; then
-		    echo "    failed cloning repo $url"
-		    continue
-		fi
-	    else
-		echo "    no messages in range." >&2
-		continue
-	    fi
-	fi
+	#if ! git --git-dir=$gitdir/$epoch fetch --quiet \
+	#     --shallow-since="$since" 2>/dev/null; then
+	#    if [ $epoch -eq 0 ]; then
+
+	#	rm -rf "${gitdir:?}/$epoch"
+	#	if ! git clone --mirror --shallow-since="$since" "$url/0" "$gitdir/0"; then
+	#	    echo "    failed cloning repo $url"
+	#	    continue
+	#	fi
+	#    else
+	#	echo "    no messages in range." >&2
+	#	continue
+	#    fi
+	#fi
 
 	import $1 $gitdir/$epoch master
     done
